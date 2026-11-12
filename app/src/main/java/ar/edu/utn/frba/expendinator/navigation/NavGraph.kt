@@ -214,7 +214,10 @@ fun AppNavHost() {
                         viewModel = vm,
                         onExpenseClicked = { expense -> nav.navigate("detail/${expense.id}") },
                         setFabAction = { action -> fabAction = action },
-                        onAddClicked = { nav.navigate(Dest.OcrReview.route) }
+                        onPhotoCaptured = { uri ->
+                            ocrVm.setPendingPhoto(uri)
+                            nav.navigate(Dest.OcrReview.route)
+                        }
                     )
                 }
 

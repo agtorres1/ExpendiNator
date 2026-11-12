@@ -49,6 +49,10 @@ object ApiClient {
     fun isLoggedIn(): Boolean = !authToken.isNullOrEmpty()
 
     val client = HttpClient(CIO) {
+        engine {
+            // El escaneo con IA puede tardar varios segundos
+            requestTimeout = 60_000
+        }
         install(ContentNegotiation) {
             json(
                 Json {

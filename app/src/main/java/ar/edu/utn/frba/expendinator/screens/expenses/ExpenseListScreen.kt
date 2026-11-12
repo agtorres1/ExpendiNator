@@ -2,10 +2,9 @@ package ar.edu.utn.frba.expendinator.screens.expenses
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.launch
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,6 +27,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import java.io.File
 import ar.edu.utn.frba.expendinator.models.Category
 import ar.edu.utn.frba.expendinator.models.Expense
 import java.text.SimpleDateFormat
@@ -38,7 +39,7 @@ import ar.edu.utn.frba.ExpendinatorApp.R
 @Composable
 fun ExpenseListScreen(
     viewModel: ExpenseListViewModel,
-    onAddClicked: () -> Unit = {},
+    onPhotoCaptured: (Uri) -> Unit = {},
     onExpenseClicked: (Expense) -> Unit = {},
     setFabAction: ((() -> Unit) -> Unit)? = null
 ) {
@@ -52,29 +53,34 @@ fun ExpenseListScreen(
     }
 
     // ---- Cámara: estado + launchers ----
-    var photo by remember { mutableStateOf<Bitmap?>(null) }
+    // La foto se guarda en resolución completa en un archivo temporal (cache/tickets)
+    // y se pasa como Uri a la pantalla de revisión, que la sube al backend.
+    var pendingUri by remember { mutableStateOf<Uri?>(null) }
 
-    // Abre la cámara y devuelve un Bitmap "preview"
     val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicturePreview()
-    ) { bitmap ->
-        photo = bitmap
-        // Aquí simulamos "foto lista": ahora navegamos a la pantalla OCR
-        if (bitmap != null) {
-            onAddClicked()
+        contract = ActivityResultContracts.TakePicture()
+    ) { saved ->
+        val uri = pendingUri
+        if (saved && uri != null) {
+            onPhotoCaptured(uri)
         }
+    }
+
+    val launchCamera = {
+        val dir = File(context.cacheDir, "tickets").apply { mkdirs() }
+        val file = File(dir, "ticket_${System.currentTimeMillis()}.jpg")
+        val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+        pendingUri = uri
+        cameraLauncher.launch(uri)
     }
 
     // Pide permiso de cámara
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
-        if (granted) cameraLauncher.launch()
+        if (granted) launchCamera()
         // TODO: mostrar Snackbar si no se otorgó permiso
     }
-
-    // Context disponible en composición
-
 
     val onFabClick = {
         val granted = ContextCompat.checkSelfPermission(
@@ -82,11 +88,11 @@ fun ExpenseListScreen(
         ) == PackageManager.PERMISSION_GRANTED
 
         if (granted) {
-            cameraLauncher.launch()
+            launchCamera()
         } else {
             permissionLauncher.launch(Manifest.permission.CAMERA)
         }
-        // No navegamos acá; navegamos cuando llega el bitmap (arriba)
+        // No navegamos acá; navegamos cuando la foto quedó guardada (arriba)
     }
 
     LaunchedEffect(Unit) {
@@ -120,24 +126,6 @@ fun ExpenseListScreen(
             }
         }
 
-        // Preview chiquita de la última foto capturada (opcional)
-        photo?.let {
-            Spacer(Modifier.height(8.dp))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Image(
-                    bitmap = it.asImageBitmap(),
-                    contentDescription = stringResource(R.string.foto_capturada),
-                    modifier = Modifier.size(96.dp)
-                )
-                Text(stringResource(R.string.captura_lista_ocr))
-            }
-        }
     }
 }
 
