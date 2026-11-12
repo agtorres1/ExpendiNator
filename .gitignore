@@ -64,3 +64,9 @@ google-services.json
 # Node / Backend
 # ------------------------------
 backend/node_modules/
+# Backend: secretos, build y datos de evaluación (los tickets pueden tener datos personales)
+backend/.env
+backend/dist/
+backend/eval/tickets/
+backend/eval/dataset.jsonl
+backend/eval/results/
