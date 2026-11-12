@@ -17,13 +17,17 @@ data class OcrPreview(
     val currency: String,
     val date: String,
     val items: List<OcrItem>,
-    val total: Double
-    // byCategory existe en backend pero para editar no es necesario
+    val total: Double,
+    val merchant: String? = null,
+    // Avisos del backend (ej: la suma de ítems no coincide con el total)
+    val warnings: List<String> = emptyList()
 )
 
 @Serializable
 data class OcrConfirmRequest(
-    val items: List<OcrItem>
+    val items: List<OcrItem>,
+    // Id del escaneo: el backend guarda lo confirmado junto a lo que extrajo el modelo
+    val receiptId: String? = null
 )
 
 @Serializable

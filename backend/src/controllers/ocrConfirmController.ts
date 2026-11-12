@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { CategoryModel } from "../models/Category.js";
 import { ExpenseModel } from "../models/Expense.js";
+import { ReceiptScanModel } from "../models/ReceiptScan.js";
 import { sanitizeDateInput } from "../utils/date.js";
 
 export const OcrConfirmController = {
@@ -53,6 +54,16 @@ export const OcrConfirmController = {
         });
 
         created.push(newExpense);
+      }
+
+      // Guardamos lo que el usuario confirmó/corrigió junto al escaneo original (feedback para evaluar y reentrenar)
+      const receiptId = req.body.receiptId;
+      if (typeof receiptId === "string" && !receiptId.startsWith("mock-")) {
+        try {
+          await ReceiptScanModel.saveConfirmation(receiptId, userId, items);
+        } catch (err) {
+          console.error("[ocr] no se pudo guardar la confirmación del escaneo", err);
+        }
       }
 
       return res.json({ created });

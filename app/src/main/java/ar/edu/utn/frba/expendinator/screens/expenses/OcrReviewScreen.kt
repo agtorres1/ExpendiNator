@@ -71,7 +71,8 @@ fun OcrReviewScreen(
     val nombreRequeridoText = stringResource(R.string.nombre_requerido)
     val noSePudoCrearCategoriaText = stringResource(R.string.no_se_pudo_crear_categoria)
 
-    LaunchedEffect(Unit) { ocrVm.loadMock() }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    LaunchedEffect(Unit) { ocrVm.startScan(context) }
     LaunchedEffect(categories.isEmpty()) {
         if (categories.isEmpty()) {
             expensesVm.refreshAll()
@@ -104,13 +105,22 @@ fun OcrReviewScreen(
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            stringResource(R.string.ticket_id, preview.data.receiptId),
+                            preview.data.merchant
+                                ?: stringResource(R.string.ticket_id, preview.data.receiptId),
                             style = MaterialTheme.typography.titleMedium
                         )
                         Text(
                             stringResource(R.string.fecha_y_total_con_datos, preview.data.date, preview.data.total),
                             style = MaterialTheme.typography.bodyMedium
                         )
+                        // Avisos de la IA (ej: la suma no coincide con el total): conviene revisar
+                        preview.data.warnings.forEach { warning ->
+                            Text(
+                                "⚠ $warning",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
                     }
                 }
 
