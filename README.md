@@ -77,13 +77,10 @@ Esto crea la base `expendinatordb` y todas las tablas necesarias
 
 ## 3️⃣ Configurar variables de entorno
 
-En el archivo `.env` dentro de `backend` modificar las credenciales de la base de datos con las propias de la instancia local.
-Ejemplo:
-> DB_HOST=localhost
-> 
-> DB_USER=root
-> 
-> DB_PASS=root
+Dentro de `backend/`, copiá `.env.example` a `.env` y completá las credenciales de tu instancia local de MySQL.
+El `.env` no se sube al repo.
+
+Si ya tenías la base creada de antes, ejecutá también `backend/sql/002-receipt-scans.sql`.
 
 ## 4️⃣ Instalar dependencias
 
@@ -100,8 +97,38 @@ El backend quedará disponible en:
 
 Listo para recibir requests desde la app!
 
+---
 
+# 🤖 Escaneo de tickets con IA (Azure)
 
+El escaneo usa un modelo multimodal desplegado en **Microsoft Foundry** (Azure OpenAI), que lee la foto del ticket y devuelve los ítems, montos, fecha y comercio en un JSON con forma fija (Structured Outputs).
 
+```
+App (foto) ──► POST /ocr/parse ──► Azure OpenAI (Foundry) ──► categorizador ──► revisión en la app ──► POST /ocr/confirm
+                                          │                                                          │
+                                          └──────────────── receipt_scans (extracción + corrección) ◄─┘
+```
 
+## Configuración
+
+1. En el portal de Microsoft Foundry, creá un proyecto y desplegá un modelo con visión (por ejemplo `gpt-4.1-mini`).
+2. Copiá el endpoint y la clave del recurso y completá en `backend/.env`:
+   ```
+   AZURE_OPENAI_ENDPOINT=https://<tu-recurso>.openai.azure.com/
+   AZURE_OPENAI_API_KEY=...
+   AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+   ```
+3. Levantá el backend y sacá una foto desde la app.
+
+Sin esas variables, `/ocr/parse` responde 503; el endpoint `/ocr/mock` sigue disponible para probar la app sin Azure.
+
+## Piezas
+
+| Archivo | Qué hace |
+|---|---|
+| `backend/prompts/receipt-extraction.v1.md` | Prompt versionado. Cada escaneo guarda qué versión se usó |
+| `backend/src/ai/receiptExtractor.ts` | Llamada al modelo con JSON Schema estricto y telemetría (latencia, tokens) |
+| `backend/src/ai/categorizer.ts` | Asigna categoría (sugerencia del LLM + palabras clave). Acá se va a enchufar un clasificador de Azure ML |
+| `backend/sql/002-receipt-scans.sql` | Registro de cada escaneo y de lo que el usuario corrigió al confirmar |
+| `backend/eval/` | Evaluación contra un dataset de tickets reales (`npm run eval`). Ver su README |
 

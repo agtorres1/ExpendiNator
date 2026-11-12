@@ -1,0 +1,2 @@
+{"id":"001","image":"tickets/001.jpg","expected":{"merchant":"DIA","date":"2026-11-10","total":3700,"items":[{"title":"Leche entera 1L","amount":2500,"category":"Supermercado"},{"title":"Pan lactal","amount":1200,"category":"Supermercado"}]}}
+{"id":"002","image":"tickets/002.jpg","expected":{"merchant":"YPF","date":"2026-11-08","total":45000,"items":[{"title":"Nafta súper","amount":45000,"category":"Transporte"}]}}
