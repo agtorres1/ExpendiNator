@@ -135,4 +135,12 @@
     <string name="semana_abrev">Sem %1$d</string>
     <string name="aumento_categoria">%1$s subió %2$d%% respecto de %3$s</string>
     <string name="periodo_anterior">el período anterior</string>
+    <string name="login_ayuda">Sacale una foto al ticket y la IA carga tus gastos por vos.</string>
+    <string name="mostrar_password">Mostrar contraseña</string>
+    <string name="ocultar_password">Ocultar contraseña</string>
+    <string name="autenticando">Ingresando…</string>
+    <string name="color_opcion">Color %1$d</string>
+    <string name="widget_hoy">Hoy</string>
+    <string name="widget_monto">$ %1$s</string>
+    <string name="widget_cero">$ 0,00</string>
 </resources>

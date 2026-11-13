@@ -1,12 +1,16 @@
 package ar.edu.utn.frba.expendinator.screens.auth
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.text.style.TextAlign
+import ar.edu.utn.frba.expendinator.ui.components.*
 import androidx.compose.material3.*
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.Visibility
-import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -40,20 +44,24 @@ fun RegisterScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .imePadding()
+            .verticalScroll(rememberScrollState())
+            .padding(20.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(stringResource(R.string.crear_cuenta), style = MaterialTheme.typography.headlineMedium)
+        Text(stringResource(R.string.crear_cuenta), style = MaterialTheme.typography.headlineLarge)
 
-        Card(
+        ExpendiCard(
             modifier = Modifier
                 .padding(top = 24.dp)
-                .fillMaxWidth(0.92f),
-            shape = MaterialTheme.shapes.large
+                .fillMaxWidth(),
+            radius = 24.dp
         ) {
-            Column(Modifier.padding(16.dp)) {
+            Column(Modifier.padding(18.dp)) {
                 OutlinedTextField(
+                    shape = MaterialTheme.shapes.small,
+                    colors = expendInputColors(),
                     value = email,
                     onValueChange = { email = it },
                     label = { Text(stringResource(R.string.email)) },
@@ -62,15 +70,17 @@ fun RegisterScreen(
                 )
                 Spacer(Modifier.height(12.dp))
                 OutlinedTextField(
+                    shape = MaterialTheme.shapes.small,
+                    colors = expendInputColors(),
                     value = password,
                     onValueChange = { password = it },
                     label = { Text(stringResource(R.string.password_min_6)) },
-                    leadingIcon = { Icon(imageVector = Icons.Outlined.Lock, contentDescription = null) },
+                    leadingIcon = { Icon(imageVector = Icons.Rounded.Lock, contentDescription = null) },
                     trailingIcon = {
                         IconButton(onClick = { showPassword = !showPassword }) {
                             Icon(
-                                imageVector = if (showPassword) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
-                                contentDescription = null
+                                imageVector = if (showPassword) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
+                                contentDescription = stringResource(if (showPassword) R.string.ocultar_password else R.string.mostrar_password)
                             )
                         }
                     },
@@ -80,10 +90,12 @@ fun RegisterScreen(
                 )
                 Spacer(Modifier.height(12.dp))
                 OutlinedTextField(
+                    shape = MaterialTheme.shapes.small,
+                    colors = expendInputColors(),
                     value = confirm,
                     onValueChange = { confirm = it },
                     label = { Text(stringResource(R.string.confirmar_password)) },
-                    leadingIcon = { Icon(imageVector = Icons.Outlined.Lock, contentDescription = null) },
+                    leadingIcon = { Icon(imageVector = Icons.Rounded.Lock, contentDescription = null) },
                     isError = confirm.isNotEmpty() && !match,
                     supportingText = {
                         if (confirm.isNotEmpty() && !match) Text(stringResource(R.string.password_no_coinciden))
@@ -102,29 +114,14 @@ fun RegisterScreen(
                     )
                 }
 
-                Button(
+                PrimaryButton(
+                    label = stringResource(if (isLoading) R.string.autenticando else R.string.registrarme),
                     onClick = { viewModel.register(email.trim(), password) },
                     enabled = isValid && !isLoading,
-                    modifier = Modifier
-                        .padding(top = 16.dp)
-                        .fillMaxWidth()
-                        .height(48.dp)
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(strokeWidth = 2.dp, modifier = Modifier.size(20.dp))
-                    } else {
-                        Text(stringResource(R.string.registrarme))
-                    }
-                }
-
-                TextButton(
-                    onClick = onNavigateToLogin,
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .padding(top = 4.dp)
-                ) {
-                    Text(stringResource(R.string.ya_tenes_cuenta))
-                }
+                    modifier = Modifier.padding(top = 16.dp).fillMaxWidth()
+                )
+                SecondaryTextButton(stringResource(R.string.ya_tenes_cuenta), onNavigateToLogin,
+                    Modifier.align(Alignment.CenterHorizontally).padding(top = 4.dp))
             }
         }
     }
