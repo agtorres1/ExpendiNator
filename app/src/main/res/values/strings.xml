@@ -127,4 +127,12 @@
         <item quantity="one">queda %d día</item>
         <item quantity="other">quedan %d días</item>
     </plurals>
+    <string name="semana">Semana</string>
+    <string name="mes">Mes</string>
+    <string name="anio">Año</string>
+    <string name="total">Total</string>
+    <string name="por_semana">Por semana</string>
+    <string name="semana_abrev">Sem %1$d</string>
+    <string name="aumento_categoria">%1$s subió %2$d%% respecto de %3$s</string>
+    <string name="periodo_anterior">el período anterior</string>
 </resources>
