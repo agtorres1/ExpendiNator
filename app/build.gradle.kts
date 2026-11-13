@@ -39,6 +39,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.datastore.preferences)
 
     implementation(platform("androidx.compose:compose-bom:2024.09.02"))
 

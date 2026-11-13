@@ -3,7 +3,6 @@ package ar.edu.utn.frba.expendinator.navigation
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -11,7 +10,8 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +26,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -61,12 +62,17 @@ import ar.edu.utn.frba.expendinator.screens.expenses.ExpenseListViewModel
 import ar.edu.utn.frba.expendinator.screens.expenses.OcrReviewScreen
 import ar.edu.utn.frba.expendinator.screens.expenses.OcrViewModel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.flow.Flow
+import ar.edu.utn.frba.expendinator.data.ThemePreferences
+import ar.edu.utn.frba.expendinator.screens.settings.SettingsScreen
+import ar.edu.utn.frba.expendinator.ui.components.*
+import ar.edu.utn.frba.expendinator.ui.theme.ThemeMode
+import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import ar.edu.utn.frba.expendinator.screens.metrics.MetricsScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppNavHost() {
+fun AppNavHost(preferences: ThemePreferences, mode: ThemeMode) {
 
     val nav = rememberNavController()
     LaunchedEffect(Unit) {
@@ -76,17 +82,23 @@ fun AppNavHost() {
     val budgetVm: BudgetViewModel = viewModel()
     val authVm: AuthViewModel = viewModel()
 
-    val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
 
     val currentRoute by nav.currentBackStackEntryAsState()
         .let { state -> derivedStateOf { state.value?.destination?.route } }
 
-    val isDetail = currentRoute?.startsWith("detail/") == true || currentRoute == "detail/{id}"
-    val currentLabel = when {
-        isDetail -> "Detalle"
-        else -> Dest.drawerItems.firstOrNull { it.route == currentRoute }?.label ?: "Expendinator"
+    val primaryDestinations = listOf(
+        BottomDestination(Dest.Main.route, stringResource(R.string.inicio), Icons.Rounded.Home),
+        BottomDestination(Dest.Metrics.route, stringResource(R.string.metricas), Icons.Rounded.BarChart),
+        BottomDestination(Dest.Budget.route, stringResource(R.string.presupuestos), Icons.Rounded.AccountBalanceWallet),
+        BottomDestination(Dest.Categories.route, stringResource(R.string.categorias), Icons.Rounded.Category)
+    )
+    val topTitle = when (currentRoute) {
+        "detail/{id}" -> R.string.detalle
+        Dest.OcrReview.route -> R.string.revisar_ticket
+        Dest.Categories.route -> R.string.categorias
+        else -> null
     }
 
     val topBarActions = remember { mutableStateOf<@Composable RowScope.() -> Unit>({}) }
@@ -96,80 +108,35 @@ fun AppNavHost() {
 
     val ocrVm: OcrViewModel = viewModel()
 
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            ModalDrawerSheet {
-                Text(
-                    stringResource(R.string.app_name),
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(16.dp)
-                )
-                Dest.drawerItems.forEach { dest ->
-                    NavigationDrawerItem(
-                        label = { Text(dest.label!!) },
-                        selected = currentRoute == dest.route,
-                        icon = { Icon(dest.icon!!, contentDescription = dest.label) },
-                        onClick = {
-                            scope.launch { drawerState.close() }
-                            if (currentRoute != dest.route) {
-                                nav.navigate(dest.route) {
-                                    popUpTo(nav.graph.startDestinationId) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            }
-                        },
-                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-                    )
-                }
-                NavigationDrawerItem(
-                    label = { Text(stringResource(R.string.cerrar_sesion)) },
-                    selected = false,
-                    icon = { Icon(Icons.Filled.Close, contentDescription = "Cerrar sesión") },
-                    onClick = {
-                        scope.launch { drawerState.close() }
-
-                        ApiClient.logout()
-
-                        nav.navigate(Dest.Login.route) {
-                            popUpTo(nav.graph.startDestinationId) { inclusive = true }
-                            launchSingleTop = true
-                        }
+    Scaffold(
+        topBar = {
+            if (topTitle != null) {
+                TopAppBar(
+                    title = { Text(stringResource(topTitle)) },
+                    navigationIcon = {
+                        IconSquareButton(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(R.string.volver),
+                            { nav.popBackStack() })
                     },
-                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                    actions = topBarActions.value,
+                    colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background
+                    )
                 )
             }
-        }
-    ) {
-        Scaffold(
-            topBar = {
-                if (currentRoute != Dest.Login.route && currentRoute != Dest.Register.route) {
-                    TopAppBar(
-                        title = { Text(currentLabel) },
-                        navigationIcon = {
-                            if (isDetail) {
-                                IconButton(onClick = { nav.popBackStack() }) {
-                                    Icon(Icons.Filled.ArrowBack, contentDescription = "Atrás")
-                                }
-                            } else {
-                                IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                                    Icon(Icons.Filled.Menu, contentDescription = "Menú")
-                                }
-                            }
-                        },
-                        actions = topBarActions.value
-                    )
-                }
-            },
-            floatingActionButton = {
-                if (currentRoute == Dest.Main.route) {
-                    FloatingActionButton(onClick = { fabAction() }) {
-                        Icon(Icons.Filled.Add, contentDescription = "Agregar")
+        },
+        bottomBar = {
+            if (primaryDestinations.any { it.route == currentRoute }) {
+                ExpendiBottomBar(primaryDestinations, currentRoute) { route ->
+                    if (currentRoute != route) {
+                        nav.navigate(route) {
+                            popUpTo(Dest.Main.route)
+                            launchSingleTop = true
+                        }
                     }
                 }
             }
-        ) { innerPadding ->
+        }
+    ) { innerPadding ->
             NavHost(
                 navController = nav,
                 startDestination = Dest.startDestination,
@@ -204,8 +171,28 @@ fun AppNavHost() {
                     )
                 }
 
+                composable(Dest.Settings.route) {
+                    val alerts by preferences.budgetAlerts.collectAsState(false)
+                    SettingsScreen(
+                        mode, alerts,
+                        onMode = { scope.launch { preferences.setThemeMode(it) } },
+                        onAlerts = { scope.launch { preferences.setBudgetAlerts(it) } },
+                        onBack = { nav.popBackStack() },
+                        onCategories = { nav.navigate(Dest.Categories.route) { launchSingleTop = true } },
+                        onLogout = {
+                            ApiClient.logout()
+                            nav.navigate(Dest.Login.route) {
+                                popUpTo(nav.graph.startDestinationId) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    )
+                }
+
                 // Home
-                composable(Dest.Main.route) {
+                composable(Dest.Main.route) { entry ->
+                    val scanRequested by entry.savedStateHandle
+                        .getStateFlow("scanRequested", false).collectAsState()
                     LaunchedEffect(fabAction) {
                         NavigationController.triggerFab = fabAction
                     }
@@ -213,7 +200,10 @@ fun AppNavHost() {
                     ExpenseListScreen(
                         viewModel = vm,
                         onExpenseClicked = { expense -> nav.navigate("detail/${expense.id}") },
+                        onSettings = { nav.navigate(Dest.Settings.route) },
                         setFabAction = { action -> fabAction = action },
+                        scanRequested = scanRequested,
+                        onScanRequestHandled = { entry.savedStateHandle["scanRequested"] = false },
                         onPhotoCaptured = { uri ->
                             ocrVm.setPendingPhoto(uri)
                             nav.navigate(Dest.OcrReview.route)
@@ -242,17 +232,17 @@ fun AppNavHost() {
                         topBarActions.value = {
                             if (detailIsEditing) {
                                 IconButton(onClick = { onSave() }) {
-                                    Icon(Icons.Filled.Check, contentDescription = "Guardar")
+                                    Icon(Icons.Rounded.Check, contentDescription = stringResource(R.string.guardar))
                                 }
                                 IconButton(onClick = { onCancel() }) {
-                                    Icon(Icons.Filled.Close, contentDescription = "Cancelar")
+                                    Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.cancelar))
                                 }
                             } else {
                                 IconButton(onClick = { onStartEdit() }) {
-                                    Icon(Icons.Filled.Edit, contentDescription = "Editar")
+                                    Icon(Icons.Rounded.Edit, contentDescription = stringResource(R.string.editar))
                                 }
                                 IconButton(onClick = { onDelete() }) {
-                                    Icon(Icons.Filled.Delete, contentDescription = "Borrar")
+                                    Icon(Icons.Rounded.Delete, contentDescription = stringResource(R.string.borrar))
                                 }
                             }
                         }
@@ -324,6 +314,10 @@ fun AppNavHost() {
                     OcrReviewScreen(
                         ocrVm,
                         expensesVm = vm,
+                        onRetake = {
+                            nav.previousBackStackEntry?.savedStateHandle?.set("scanRequested", true)
+                            nav.popBackStack()
+                        },
                         onConfirmed = {
                             vm.refreshAll()
                             budgetVm.refresh()
@@ -342,15 +336,3 @@ fun AppNavHost() {
             }
         }
     }
-}
-
-@Composable
-private fun PlaceholderScreen(text: String) {
-    Surface(modifier = Modifier) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(24.dp)
-        )
-    }
-}

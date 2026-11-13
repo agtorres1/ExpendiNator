@@ -77,4 +77,24 @@
     <string name="gastos_diarios">Gastos Diarios</string>
     <string name="cerrar_sesion">Cerrar Sesión</string>
 
+    <string name="inicio">Inicio</string>
+    <string name="metricas">Métricas</string>
+    <string name="presupuestos">Presupuestos</string>
+    <string name="categorias">Categorías</string>
+    <string name="ajustes">Ajustes</string>
+    <string name="apariencia">Apariencia</string>
+    <string name="modo_oscuro">Oscuro</string>
+    <string name="modo_claro">Claro</string>
+    <string name="modo_sistema">Sistema</string>
+    <string name="modo_sistema_ayuda">«Sistema» sigue el modo claro u oscuro de tu celular.</string>
+    <string name="general">General</string>
+    <string name="moneda">Moneda</string>
+    <string name="moneda_ars">ARS · Peso argentino</string>
+    <string name="avisos_presupuesto">Avisos de presupuesto</string>
+    <string name="avisos_presupuesto_ayuda">Cuando llegues al 80% de un límite</string>
+    <string name="mis_categorias">Mis categorías</string>
+    <string name="tus_gastos">Tus gastos</string>
+    <string name="revisar_ticket">Revisar ticket</string>
+    <string name="detalle">Detalle</string>
+    <string name="editar">Editar</string>
 </resources>

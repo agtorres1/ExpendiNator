@@ -7,18 +7,32 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.material3.MaterialTheme
+import androidx.activity.SystemBarStyle
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import ar.edu.utn.frba.expendinator.data.ThemePreferences
+import ar.edu.utn.frba.expendinator.ui.theme.ExpendinatorTheme
+import ar.edu.utn.frba.expendinator.ui.theme.ThemeMode
+import ar.edu.utn.frba.expendinator.ui.theme.isDark
 import ar.edu.utn.frba.expendinator.navigation.AppNavHost
 import ar.edu.utn.frba.expendinator.navigation.NavigationController
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-
+        val preferences = ThemePreferences(this)
         setContent {
-            MaterialTheme {
-                AppNavHost()
+            val mode by preferences.themeMode.collectAsState(ThemeMode.DARK)
+            val dark = mode.isDark()
+            SideEffect {
+                val transparent = android.graphics.Color.TRANSPARENT
+                val style = if (dark) SystemBarStyle.dark(transparent)
+                else SystemBarStyle.light(transparent, transparent)
+                enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
+            }
+            ExpendinatorTheme(themeMode = mode) {
+                AppNavHost(preferences, mode)
             }
         }
 

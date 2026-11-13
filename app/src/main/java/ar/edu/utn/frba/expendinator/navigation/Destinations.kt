@@ -12,14 +12,16 @@ import ar.edu.utn.frba.expendinator.data.remote.ApiClient
 sealed class Dest(val route: String, val label: String? = null, val icon: ImageVector? = null) {
     data object Login : Dest("login")
     data object Register : Dest("register")
-    data object Main: Dest("main","Gastos", Icons.Default.Home)
+    data object Main: Dest("main","Tus gastos", Icons.Default.Home)
     data object Budget: Dest("budget","Presupuestos", Icons.Default.ShoppingCart)
-    data object Categories: Dest("categories","Categorias", Icons.Default.Build)
+    data object Categories: Dest("categories","Categorías", Icons.Default.Build)
     data object Metrics: Dest("metrics","Métricas", Icons.Default.DateRange)
-    data object OcrReview: Dest("ocrReview", "Revisar OCR", Icons.Default.ShoppingCart)
+    data object OcrReview: Dest("ocrReview", "Revisar ticket", Icons.Default.ShoppingCart)
+
+    data object Settings : Dest("settings")
 
     companion object {
-        val drawerItems = listOf(Main, Budget, Categories, Metrics)
-        val startDestination = if (ApiClient.isLoggedIn()) Main.route else Login.route
+        val drawerItems by lazy { listOf(Main, Budget, Categories, Metrics) }
+        val startDestination by lazy { if (ApiClient.isLoggedIn()) Main.route else Login.route }
     }
 }
