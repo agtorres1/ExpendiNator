@@ -137,7 +137,7 @@ private fun BudgetPreview() {
     ExpendinatorTheme(ThemeMode.SYSTEM) {
         Surface(color = MaterialTheme.colorScheme.background) {
             val month = YearMonth.now()
-            BudgetContent(listOf(BudgetUsageUi("1", Category("1", stringResource(R.string.ejemplo_gasto), PreviewCategoryColor),
+            BudgetContent(listOf(BudgetUsageUi("1", Category(id = "1", name = stringResource(R.string.ejemplo_gasto), color = PreviewCategoryColor),
                 90000.0, BudgetPeriod.MONTHLY, month.atDay(1).toString(), month.atEndOfMonth().toString(), 72500.0)), {}, {})
         }
     }
