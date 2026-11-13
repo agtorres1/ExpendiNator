@@ -1,146 +1,144 @@
 package ar.edu.utn.frba.expendinator.screens.budgets
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import ar.edu.utn.frba.ExpendinatorApp.R
+import ar.edu.utn.frba.expendinator.models.BudgetPeriod
+import ar.edu.utn.frba.expendinator.models.Category
 import ar.edu.utn.frba.expendinator.screens.expenses.ExpenseListViewModel
+import ar.edu.utn.frba.expendinator.ui.components.*
+import ar.edu.utn.frba.expendinator.ui.theme.*
+import java.time.LocalDate
+import java.time.YearMonth
+import kotlin.math.roundToInt
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BudgetScreen(
     budgetVm: BudgetViewModel,
-    expensesVm: ExpenseListViewModel,   // se mantiene la firma, pero ya no lo usamos
+    expensesVm: ExpenseListViewModel,
     onNew: () -> Unit = {},
-    onBudgetClicked: (BudgetUsageUi) -> Unit = {},
+    onBudgetClicked: (BudgetUsageUi) -> Unit = {}
 ) {
     LaunchedEffect(Unit) { budgetVm.refresh() }
-
     val budgets by budgetVm.budgets.collectAsState()
+    BudgetContent(budgets, onNew, onBudgetClicked)
+}
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp, 16.dp, 16.dp, 64.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        items(budgets, key = { b: BudgetUsageUi -> b.id }) { b ->
+@Composable
+private fun BudgetContent(budgets: List<BudgetUsageUi>, onNew: () -> Unit, onBudgetClicked: (BudgetUsageUi) -> Unit) {
+    val month = YearMonth.now()
+    val today = LocalDate.now()
+    val monthly = budgets.filter {
+        it.period == BudgetPeriod.MONTHLY &&
+            it.startDate.take(10) <= today.toString() && it.endDate.take(10) >= today.toString()
+    }
+    val limit = monthly.sumOf { it.limitAmount }
+    val used = monthly.sumOf { it.spent }
+    val ratio = if (limit > 0) (used / limit).toFloat().coerceAtLeast(0f) else 0f
+    val tokens = ExpendiTheme.colors
+    val muted = MaterialTheme.colorScheme.onSurfaceVariant
 
-            val spent = b.spent
-            val percentage = (spent / b.limitAmount).coerceIn(0.0, 1.0)
-            val over = spent > b.limitAmount
-
-            Card(onClick = { onBudgetClicked(b) }) {
-                Column(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp)
-                ) {
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                Modifier
-                                    .size(10.dp)
-                                    .background(
-                                        Color(b.category.color),
-                                        CircleShape
-                                    )
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                b.category.name,
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                        }
-                        Text(
-                            "${"%.0f".format(spent)} / ${"%.0f".format(b.limitAmount)} $",
-                            color = if (over)
-                                MaterialTheme.colorScheme.error
-                            else
-                                MaterialTheme.colorScheme.onSurface
-                        )
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        item {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.presupuestos), style = MaterialTheme.typography.titleLarge)
+                IconSquareButton(Icons.Rounded.Add, stringResource(R.string.nuevo_presupuesto), onNew, prominent = true)
+            }
+        }
+        if (limit > 0) item {
+            ExpendiCard(Modifier.fillMaxWidth(), radius = 24.dp) {
+                Row(Modifier.padding(18.dp), horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(72.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(progress = { ratio.coerceAtMost(1f) },
+                            modifier = Modifier.fillMaxSize(), color = tokens.accent,
+                            trackColor = MaterialTheme.colorScheme.outline, strokeWidth = 6.dp)
+                        Text(stringResource(R.string.porcentaje, (ratio * 100).roundToInt()),
+                            style = ExpendiTheme.typography.amount, color = tokens.accent)
                     }
-                    Spacer(Modifier.height(24.dp))
-                    LinearProgressIndicator(
-                        progress = { percentage.toFloat() },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(10.dp),
-                        color = if (over)
-                            MaterialTheme.colorScheme.error
-                        else
-                            Color(b.category.color),
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
-                    )
+                    Column {
+                        Text(stringResource(R.string.usado_mes, monthName(month)),
+                            style = MaterialTheme.typography.bodyMedium, color = muted)
+                        Text(peso(used), style = ExpendiTheme.typography.amount.copy(fontSize = 24.sp))
+                        val days = month.lengthOfMonth() - today.dayOfMonth
+                        Text(stringResource(R.string.meta_dos, stringResource(R.string.de_limite, peso(limit)),
+                            pluralStringResource(R.plurals.dias_restantes, days, days)),
+                            style = MaterialTheme.typography.bodySmall, color = muted)
+                    }
                 }
             }
         }
-
-        // Tarjeta "Nuevo" (por ahora, sólo navega; la lógica de creación la podés sumar después)
-        item {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.surface,
-                        shape = RoundedCornerShape(16.dp)
-                    )
-                    .border(
-                        width = 1.dp,
-                        brush = SolidColor(MaterialTheme.colorScheme.outline),
-                        shape = RoundedCornerShape(16.dp),
-                    )
-                    .clickable { onNew() }
-                    .padding(vertical = 20.dp, horizontal = 20.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Start,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.nuevo), style = MaterialTheme.typography.bodyLarge)
+        if (budgets.isEmpty()) item {
+            Text(stringResource(R.string.sin_presupuestos), color = muted, style = MaterialTheme.typography.bodyMedium)
+        }
+        items(budgets, key = { it.id }) { budget ->
+            val remaining = budget.limitAmount - budget.spent
+            val progress = if (budget.limitAmount > 0) (budget.spent / budget.limitAmount).toFloat() else 0f
+            val categoryColor = tokens.category(budget.category.color)
+            val status = when {
+                remaining < 0 -> stringResource(R.string.excedido_monto, peso(-remaining))
+                progress >= .8f -> stringResource(R.string.cerca_limite)
+                else -> stringResource(R.string.quedan_monto, peso(remaining))
+            }
+            val statusColor = when {
+                remaining < 0 -> tokens.warning
+                progress >= .8f -> tokens.onWarningContainer
+                else -> muted
+            }
+            ExpendiCard(Modifier.fillMaxWidth(), { onBudgetClicked(budget) }, radius = 20.dp,
+                border = if (remaining < 0) tokens.warning.copy(alpha = .45f) else MaterialTheme.colorScheme.outline) {
+                Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.size(8.dp).background(categoryColor, CircleShape))
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                            Text(budget.category.name, style = MaterialTheme.typography.titleMedium.copy(fontSize = 15.sp))
+                            val period = when (budget.period) {
+                                BudgetPeriod.WEEKLY -> R.string.semanal
+                                BudgetPeriod.MONTHLY -> R.string.mensual
+                                BudgetPeriod.YEARLY -> R.string.anual
+                            }
+                            CategoryChip(stringResource(period), budget.category.color)
+                        }
+                        Text(status, color = statusColor, style = MaterialTheme.typography.bodySmall)
+                    }
+                    ProgressBar(progress, categoryColor)
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(peso(budget.spent), style = ExpendiTheme.typography.amount)
+                        Text(stringResource(R.string.de_limite, peso(budget.limitAmount)), color = muted,
+                            style = MaterialTheme.typography.bodySmall)
+                    }
                 }
             }
+        }
+    }
+}
+
+@Preview(name = "Oscuro", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Claro", uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO)
+@Composable
+private fun BudgetPreview() {
+    ExpendinatorTheme(ThemeMode.SYSTEM) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            val month = YearMonth.now()
+            BudgetContent(listOf(BudgetUsageUi("1", Category("1", stringResource(R.string.ejemplo_gasto), PreviewCategoryColor),
+                90000.0, BudgetPeriod.MONTHLY, month.atDay(1).toString(), month.atEndOfMonth().toString(), 72500.0)), {}, {})
         }
     }
 }

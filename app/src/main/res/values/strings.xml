@@ -116,4 +116,15 @@
         <item quantity="one">%d ítem</item>
         <item quantity="other">%d ítems</item>
     </plurals>
+    <string name="porcentaje">%1$d%%</string>
+    <string name="usado_mes">Usado en %1$s</string>
+    <string name="de_limite">de %1$s</string>
+    <string name="excedido_monto">Excedido %1$s</string>
+    <string name="quedan_monto">Quedan %1$s</string>
+    <string name="cerca_limite">Cerca del límite</string>
+    <string name="sin_presupuestos">Todavía no tenés presupuestos</string>
+    <plurals name="dias_restantes">
+        <item quantity="one">queda %d día</item>
+        <item quantity="other">quedan %d días</item>
+    </plurals>
 </resources>

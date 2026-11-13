@@ -29,3 +29,5 @@ fun ExpendiColors.category(stored: Long?): Color {
     return if (dark) pastel else lightCategories[rgb]
         ?: Color(pastel.red * .55f, pastel.green * .55f, pastel.blue * .55f)
 }
+
+internal const val PreviewCategoryColor = 0xFF9EC5FEL

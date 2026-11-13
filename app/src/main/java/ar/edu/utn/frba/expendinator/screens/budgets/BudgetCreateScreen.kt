@@ -41,6 +41,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import ar.edu.utn.frba.ExpendinatorApp.R
+import ar.edu.utn.frba.expendinator.ui.components.*
+import ar.edu.utn.frba.expendinator.ui.theme.*
 import ar.edu.utn.frba.expendinator.models.BudgetPeriod
 import ar.edu.utn.frba.expendinator.models.Category
 import ar.edu.utn.frba.expendinator.screens.expenses.ExpenseListViewModel
@@ -92,7 +94,7 @@ fun BudgetCreateScreen(
 
     Column(
         modifier = Modifier
-            .padding(16.dp)
+            .padding(20.dp)
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -109,12 +111,15 @@ fun BudgetCreateScreen(
         )
 
         OutlinedTextField(
+            colors = expendInputColors(),
+            shape = MaterialTheme.shapes.small,
             value = amountText,
             onValueChange = {
                 amountText = it
                     .filter { ch -> ch.isDigit() || ch == '.' || ch == ',' }
                     .replace(',', '.')
             },
+            textStyle = ExpendiTheme.typography.amount,
             label = { Text(stringResource(R.string.monto_limite)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -141,6 +146,8 @@ fun BudgetCreateScreen(
         }
 
         OutlinedTextField(
+            colors = expendInputColors(),
+            shape = MaterialTheme.shapes.small,
             value = startDate,
             onValueChange = { startDate = it },
             label = { Text(stringResource(R.string.fecha_inicio_formato)) },
@@ -149,6 +156,8 @@ fun BudgetCreateScreen(
         )
 
         OutlinedTextField(
+            colors = expendInputColors(),
+            shape = MaterialTheme.shapes.small,
             value = endDate,
             onValueChange = { endDate = it },
             label = { Text(stringResource(R.string.fecha_fin_formato)) },
@@ -158,7 +167,8 @@ fun BudgetCreateScreen(
 
         Spacer(Modifier.height(8.dp))
 
-        Button(
+        PrimaryButton(
+            label = stringResource(R.string.guardar),
             onClick = {
                 val categoryId = selectedCategoryId?.toIntOrNull()
                 val amount = amountText.toDoubleOrNull()
@@ -166,22 +176,22 @@ fun BudgetCreateScreen(
 
                 if (categoryId == null) {
                     showErrorToast(context, elegiUnaCategoriaText)
-                    return@Button
+                    return@PrimaryButton
                 }
 
                 if (amount == null || amount <= 0) {
                     showErrorToast(context, ingresaMontoValidoText)
-                    return@Button
+                    return@PrimaryButton
                 }
 
                 if (!isValidDate(startDate) || !isValidDate(endDate)) {
                     showErrorToast(context, formatoFechasText)
-                    return@Button
+                    return@PrimaryButton
                 }
 
                 if (startDate > endDate) {
                     showErrorToast(context, fechaInicioValidacionText)
-                    return@Button
+                    return@PrimaryButton
                 }
 
                 scope.launch {
@@ -202,16 +212,10 @@ fun BudgetCreateScreen(
             },
             modifier = Modifier.fillMaxWidth(),
             enabled = categories.isNotEmpty()
-        ) {
-            Text(stringResource(R.string.guardar))
-        }
+        )
 
-        TextButton(
-            onClick = onCancel,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(stringResource(R.string.cancelar))
-        }
+
+        SecondaryTextButton(stringResource(R.string.cancelar), onCancel, Modifier.fillMaxWidth())
     }
 }
 
@@ -273,7 +277,7 @@ fun BudgetEditScreen(
     if (existing == null) {
         Column(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(20.dp)
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -285,7 +289,7 @@ fun BudgetEditScreen(
 
     Column(
         modifier = Modifier
-            .padding(16.dp)
+            .padding(20.dp)
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -302,12 +306,15 @@ fun BudgetEditScreen(
         )
 
         OutlinedTextField(
+            colors = expendInputColors(),
+            shape = MaterialTheme.shapes.small,
             value = amountText,
             onValueChange = {
                 amountText = it
                     .filter { ch -> ch.isDigit() || ch == '.' || ch == ',' }
                     .replace(',', '.')
             },
+            textStyle = ExpendiTheme.typography.amount,
             label = { Text(stringResource(R.string.monto_limite_simbolo)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -334,6 +341,8 @@ fun BudgetEditScreen(
         }
 
         OutlinedTextField(
+            colors = expendInputColors(),
+            shape = MaterialTheme.shapes.small,
             value = startDate,
             onValueChange = { startDate = it },
             label = { Text(stringResource(R.string.fecha_inicio_formato)) },
@@ -342,6 +351,8 @@ fun BudgetEditScreen(
         )
 
         OutlinedTextField(
+            colors = expendInputColors(),
+            shape = MaterialTheme.shapes.small,
             value = endDate,
             onValueChange = { endDate = it },
             label = { Text(stringResource(R.string.fecha_fin_formato)) },
@@ -351,7 +362,8 @@ fun BudgetEditScreen(
 
         Spacer(Modifier.height(8.dp))
 
-        Button(
+        PrimaryButton(
+            label = stringResource(R.string.guardar_cambios),
             onClick = {
                 val categoryId = selectedCategoryId?.toIntOrNull()
                 val amount = amountText.toDoubleOrNull()
@@ -359,22 +371,22 @@ fun BudgetEditScreen(
 
                 if (categoryId == null) {
                     showErrorToast(context, elegiUnaCategoriaText)
-                    return@Button
+                    return@PrimaryButton
                 }
 
                 if (amount == null || amount <= 0) {
                     showErrorToast(context, ingresaMontoValidoText)
-                    return@Button
+                    return@PrimaryButton
                 }
 
                 if (!isValidDate(startDate) || !isValidDate(endDate)) {
                     showErrorToast(context, formatoFechasText)
-                    return@Button
+                    return@PrimaryButton
                 }
 
                 if (startDate > endDate) {
                     showErrorToast(context, fechaInicioValidacionText)
-                    return@Button
+                    return@PrimaryButton
                 }
 
                 scope.launch {
@@ -396,16 +408,10 @@ fun BudgetEditScreen(
             },
             modifier = Modifier.fillMaxWidth(),
             enabled = categories.isNotEmpty()
-        ) {
-            Text(stringResource(R.string.guardar_cambios))
-        }
+        )
 
-        TextButton(
-            onClick = onCancel,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(stringResource(R.string.cancelar))
-        }
+
+        SecondaryTextButton(stringResource(R.string.cancelar), onCancel, Modifier.fillMaxWidth())
     }
 }
 
@@ -425,13 +431,15 @@ private fun CategoryPicker(
         onExpandedChange = { if (enabled) expanded = !expanded }
     ) {
         OutlinedTextField(
+            colors = expendInputColors(),
+            shape = MaterialTheme.shapes.small,
             value = selected?.name ?: if (enabled) "" else stringResource(R.string.sin_categorias_disponibles),
             onValueChange = {},
             readOnly = true,
             label = { Text(stringResource(R.string.categoria)) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             leadingIcon = {
-                val color = selected?.let { Color(it.color) } ?: Color.LightGray
+                val color = ExpendiTheme.colors.category(selected?.color)
                 Box(
                     modifier = Modifier
                         .height(16.dp)
@@ -457,7 +465,7 @@ private fun CategoryPicker(
                             modifier = Modifier
                                 .height(14.dp)
                                 .width(14.dp)
-                                .background(Color(category.color), CircleShape)
+                                .background(ExpendiTheme.colors.category(category.color), CircleShape)
                         )
                     },
                     text = { Text(category.name) },
