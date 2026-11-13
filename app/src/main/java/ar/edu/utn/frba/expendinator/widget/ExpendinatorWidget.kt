@@ -50,8 +50,8 @@ class ExpendinatorWidget : AppWidgetProvider() {
             val views = RemoteViews(context.packageName, R.layout.widget_expendinator)
 
             // Configurar textos
-            views.setTextViewText(R.id.widget_total_today, "$ ${widgetData.totalToday}")
-            views.setTextViewText(R.id.widget_total_week, "$ ${widgetData.totalWeek}")
+            views.setTextViewText(R.id.widget_total_today, context.getString(R.string.widget_monto, widgetData.totalToday))
+            views.setTextViewText(R.id.widget_total_week, context.getString(R.string.widget_monto, widgetData.totalWeek))
 
 
             // Últimos gastos
