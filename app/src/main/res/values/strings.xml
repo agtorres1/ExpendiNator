@@ -97,4 +97,23 @@
     <string name="revisar_ticket">Revisar ticket</string>
     <string name="detalle">Detalle</string>
     <string name="editar">Editar</string>
+    <string name="gastaste_mes">Gastaste este mes</string>
+    <string name="variacion_mes">%1$+d%%</string>
+    <string name="escanear_ticket">Escanear ticket</string>
+    <string name="escanear_ayuda">La IA carga los gastos por vos</string>
+    <string name="ultimos_gastos">Últimos gastos</string>
+    <string name="ver_todos">Ver todos</string>
+    <string name="ver_menos">Ver menos</string>
+    <string name="meta_dos">%1$s · %2$s</string>
+    <string name="ejemplo_gasto">Supermercado</string>
+    <string name="leyendo_ticket">Leyendo tu ticket…</string>
+    <string name="sacar_otra_foto">Sacar otra foto</string>
+    <string name="leido_ia">Leído con IA</string>
+    <string name="total_ticket">Total del ticket</string>
+    <string name="editar_item_ayuda">Tocá un ítem para editarlo</string>
+    <string name="listo">Listo</string>
+    <plurals name="ticket_items">
+        <item quantity="one">%d ítem</item>
+        <item quantity="other">%d ítems</item>
+    </plurals>
 </resources>

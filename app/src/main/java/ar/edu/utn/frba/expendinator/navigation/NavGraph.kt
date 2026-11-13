@@ -207,6 +207,7 @@ fun AppNavHost(preferences: ThemePreferences, mode: ThemeMode) {
                         onPhotoCaptured = { uri ->
                             ocrVm.setPendingPhoto(uri)
                             nav.navigate(Dest.OcrReview.route)
+                            nav.currentBackStackEntry?.savedStateHandle?.set("receiptFromCamera", true)
                         }
                     )
                 }
@@ -308,11 +309,12 @@ fun AppNavHost(preferences: ThemePreferences, mode: ThemeMode) {
                     MetricsScreen(expenseVm = vm)
                 }
 
-                composable(Dest.OcrReview.route) {
+                composable(Dest.OcrReview.route) { entry ->
                     val context = androidx.compose.ui.platform.LocalContext.current
 
                     OcrReviewScreen(
                         ocrVm,
+                        fromCamera = entry.savedStateHandle.get<Boolean>("receiptFromCamera") == true,
                         expensesVm = vm,
                         onRetake = {
                             nav.previousBackStackEntry?.savedStateHandle?.set("scanRequested", true)
