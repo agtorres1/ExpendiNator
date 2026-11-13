@@ -1,12 +1,11 @@
 package ar.edu.utn.frba.expendinator.screens.metrics
 
+import ar.edu.utn.frba.expendinator.utils.peso
+import ar.edu.utn.frba.expendinator.utils.monthName
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.DateRange
-import androidx.compose.material.icons.rounded.TrendingUp
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.CircleShape
@@ -106,7 +105,7 @@ private fun MetricsContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         WeeklyChart(daily, start, end)
-        warnings.forEach { WarningBanner(it, Icons.Rounded.TrendingUp) }
+        warnings.forEach { WarningBanner(it, RoundedSymbols.TrendingUp) }
         FiltersCard(start, end, onStart, onEnd)
     }
 }
@@ -228,7 +227,7 @@ private fun FiltersCard(
                 readOnly = true,
                 trailingIcon = {
                     IconButton(onClick = { showStartDatePicker = true }) {
-                        Icon(Icons.Rounded.DateRange, "Seleccionar fecha")
+                        Icon(RoundedSymbols.DateRange, "Seleccionar fecha")
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
@@ -244,7 +243,7 @@ private fun FiltersCard(
                 readOnly = true,
                 trailingIcon = {
                     IconButton(onClick = { showEndDatePicker = true }) {
-                        Icon(Icons.Rounded.DateRange, "Seleccionar fecha")
+                        Icon(RoundedSymbols.DateRange, "Seleccionar fecha")
                     }
                 },
                 modifier = Modifier.fillMaxWidth()

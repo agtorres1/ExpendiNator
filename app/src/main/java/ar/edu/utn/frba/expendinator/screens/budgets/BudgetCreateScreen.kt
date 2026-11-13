@@ -102,118 +102,121 @@ fun BudgetCreateScreen(
             text = stringResource(R.string.nuevo_presupuesto),
             style = MaterialTheme.typography.headlineSmall
         )
+        ExpendiCard(Modifier.fillMaxWidth(), radius = 24.dp) {
+            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
 
-        CategoryPicker(
-            categories = categories,
-            selectedCategoryId = selectedCategoryId,
-            enabled = categories.isNotEmpty(),
-            onCategorySelected = { selectedCategoryId = it }
-        )
+                CategoryPicker(
+                    categories = categories,
+                    selectedCategoryId = selectedCategoryId,
+                    enabled = categories.isNotEmpty(),
+                    onCategorySelected = { selectedCategoryId = it }
+                )
 
-        OutlinedTextField(
-            colors = expendInputColors(),
-            shape = MaterialTheme.shapes.small,
-            value = amountText,
-            onValueChange = {
-                amountText = it
-                    .filter { ch -> ch.isDigit() || ch == '.' || ch == ',' }
-                    .replace(',', '.')
-            },
-            textStyle = ExpendiTheme.typography.amount,
-            label = { Text(stringResource(R.string.monto_limite)) },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth()
-        )
+                OutlinedTextField(
+                    colors = expendInputColors(),
+                    shape = MaterialTheme.shapes.small,
+                    value = amountText,
+                    onValueChange = {
+                        amountText = it
+                            .filter { ch -> ch.isDigit() || ch == '.' || ch == ',' }
+                            .replace(',', '.')
+                    },
+                    textStyle = ExpendiTheme.typography.amount,
+                    label = { Text(stringResource(R.string.monto_limite)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-        Text(stringResource(R.string.periodo), style = MaterialTheme.typography.labelLarge)
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            BudgetPeriod.values().forEach { period ->
-                val label = when (period) {
-                    BudgetPeriod.MONTHLY -> stringResource(R.string.mensual)
-                    BudgetPeriod.WEEKLY -> stringResource(R.string.semanal)
-                    BudgetPeriod.YEARLY -> stringResource(R.string.anual)
+                Text(stringResource(R.string.periodo), style = MaterialTheme.typography.labelLarge)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    BudgetPeriod.values().forEach { period ->
+                        val label = when (period) {
+                            BudgetPeriod.MONTHLY -> stringResource(R.string.mensual)
+                            BudgetPeriod.WEEKLY -> stringResource(R.string.semanal)
+                            BudgetPeriod.YEARLY -> stringResource(R.string.anual)
+                        }
+                        FilterChip(
+                            selected = selectedPeriod == period.name,
+                            onClick = { selectedPeriod = period.name },
+                            label = { Text(label) }
+                        )
+                    }
                 }
-                FilterChip(
-                    selected = selectedPeriod == period.name,
-                    onClick = { selectedPeriod = period.name },
-                    label = { Text(label) }
+
+                OutlinedTextField(
+                    colors = expendInputColors(),
+                    shape = MaterialTheme.shapes.small,
+                    value = startDate,
+                    onValueChange = { startDate = it },
+                    label = { Text(stringResource(R.string.fecha_inicio_formato)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                OutlinedTextField(
+                    colors = expendInputColors(),
+                    shape = MaterialTheme.shapes.small,
+                    value = endDate,
+                    onValueChange = { endDate = it },
+                    label = { Text(stringResource(R.string.fecha_fin_formato)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(Modifier.height(8.dp))
+
+                PrimaryButton(
+                    label = stringResource(R.string.guardar),
+                    onClick = {
+                        val categoryId = selectedCategoryId?.toIntOrNull()
+                        val amount = amountText.toDoubleOrNull()
+                        val period = BudgetPeriod.valueOf(selectedPeriod)
+
+                        if (categoryId == null) {
+                            showErrorToast(context, elegiUnaCategoriaText)
+                            return@PrimaryButton
+                        }
+
+                        if (amount == null || amount <= 0) {
+                            showErrorToast(context, ingresaMontoValidoText)
+                            return@PrimaryButton
+                        }
+
+                        if (!isValidDate(startDate) || !isValidDate(endDate)) {
+                            showErrorToast(context, formatoFechasText)
+                            return@PrimaryButton
+                        }
+
+                        if (startDate > endDate) {
+                            showErrorToast(context, fechaInicioValidacionText)
+                            return@PrimaryButton
+                        }
+
+                        scope.launch {
+                            val ok = budgetVm.createBudget(
+                                categoryId = categoryId,
+                                limitAmount = amount,
+                                period = period,
+                                startDate = startDate,
+                                endDate = endDate
+                            )
+                            if (ok) {
+                                showSuccessToast(context, presupuestoCreadoText)
+                                onSaved()
+                            } else {
+                                showErrorToast(context, noSePudoCrearPresupuestoText)
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = categories.isNotEmpty()
                 )
             }
         }
-
-        OutlinedTextField(
-            colors = expendInputColors(),
-            shape = MaterialTheme.shapes.small,
-            value = startDate,
-            onValueChange = { startDate = it },
-            label = { Text(stringResource(R.string.fecha_inicio_formato)) },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        OutlinedTextField(
-            colors = expendInputColors(),
-            shape = MaterialTheme.shapes.small,
-            value = endDate,
-            onValueChange = { endDate = it },
-            label = { Text(stringResource(R.string.fecha_fin_formato)) },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(Modifier.height(8.dp))
-
-        PrimaryButton(
-            label = stringResource(R.string.guardar),
-            onClick = {
-                val categoryId = selectedCategoryId?.toIntOrNull()
-                val amount = amountText.toDoubleOrNull()
-                val period = BudgetPeriod.valueOf(selectedPeriod)
-
-                if (categoryId == null) {
-                    showErrorToast(context, elegiUnaCategoriaText)
-                    return@PrimaryButton
-                }
-
-                if (amount == null || amount <= 0) {
-                    showErrorToast(context, ingresaMontoValidoText)
-                    return@PrimaryButton
-                }
-
-                if (!isValidDate(startDate) || !isValidDate(endDate)) {
-                    showErrorToast(context, formatoFechasText)
-                    return@PrimaryButton
-                }
-
-                if (startDate > endDate) {
-                    showErrorToast(context, fechaInicioValidacionText)
-                    return@PrimaryButton
-                }
-
-                scope.launch {
-                    val ok = budgetVm.createBudget(
-                        categoryId = categoryId,
-                        limitAmount = amount,
-                        period = period,
-                        startDate = startDate,
-                        endDate = endDate
-                    )
-                    if (ok) {
-                        showSuccessToast(context, presupuestoCreadoText)
-                        onSaved()
-                    } else {
-                        showErrorToast(context, noSePudoCrearPresupuestoText)
-                    }
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = categories.isNotEmpty()
-        )
-
 
         SecondaryTextButton(stringResource(R.string.cancelar), onCancel, Modifier.fillMaxWidth())
     }
@@ -297,119 +300,122 @@ fun BudgetEditScreen(
             text = stringResource(R.string.editar_presupuesto),
             style = MaterialTheme.typography.headlineSmall
         )
+        ExpendiCard(Modifier.fillMaxWidth(), radius = 24.dp) {
+            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
 
-        CategoryPicker(
-            categories = categories,
-            selectedCategoryId = selectedCategoryId,
-            enabled = categories.isNotEmpty(),
-            onCategorySelected = { selectedCategoryId = it }
-        )
+                CategoryPicker(
+                    categories = categories,
+                    selectedCategoryId = selectedCategoryId,
+                    enabled = categories.isNotEmpty(),
+                    onCategorySelected = { selectedCategoryId = it }
+                )
 
-        OutlinedTextField(
-            colors = expendInputColors(),
-            shape = MaterialTheme.shapes.small,
-            value = amountText,
-            onValueChange = {
-                amountText = it
-                    .filter { ch -> ch.isDigit() || ch == '.' || ch == ',' }
-                    .replace(',', '.')
-            },
-            textStyle = ExpendiTheme.typography.amount,
-            label = { Text(stringResource(R.string.monto_limite_simbolo)) },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth()
-        )
+                OutlinedTextField(
+                    colors = expendInputColors(),
+                    shape = MaterialTheme.shapes.small,
+                    value = amountText,
+                    onValueChange = {
+                        amountText = it
+                            .filter { ch -> ch.isDigit() || ch == '.' || ch == ',' }
+                            .replace(',', '.')
+                    },
+                    textStyle = ExpendiTheme.typography.amount,
+                    label = { Text(stringResource(R.string.monto_limite_simbolo)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-        Text(stringResource(R.string.periodo), style = MaterialTheme.typography.labelLarge)
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            BudgetPeriod.values().forEach { period ->
-                val label = when (period) {
-                    BudgetPeriod.MONTHLY -> stringResource(R.string.mensual)
-                    BudgetPeriod.WEEKLY -> stringResource(R.string.semanal)
-                    BudgetPeriod.YEARLY -> stringResource(R.string.anual)
+                Text(stringResource(R.string.periodo), style = MaterialTheme.typography.labelLarge)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    BudgetPeriod.values().forEach { period ->
+                        val label = when (period) {
+                            BudgetPeriod.MONTHLY -> stringResource(R.string.mensual)
+                            BudgetPeriod.WEEKLY -> stringResource(R.string.semanal)
+                            BudgetPeriod.YEARLY -> stringResource(R.string.anual)
+                        }
+                        FilterChip(
+                            selected = selectedPeriod == period.name,
+                            onClick = { selectedPeriod = period.name },
+                            label = { Text(label) }
+                        )
+                    }
                 }
-                FilterChip(
-                    selected = selectedPeriod == period.name,
-                    onClick = { selectedPeriod = period.name },
-                    label = { Text(label) }
+
+                OutlinedTextField(
+                    colors = expendInputColors(),
+                    shape = MaterialTheme.shapes.small,
+                    value = startDate,
+                    onValueChange = { startDate = it },
+                    label = { Text(stringResource(R.string.fecha_inicio_formato)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                OutlinedTextField(
+                    colors = expendInputColors(),
+                    shape = MaterialTheme.shapes.small,
+                    value = endDate,
+                    onValueChange = { endDate = it },
+                    label = { Text(stringResource(R.string.fecha_fin_formato)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(Modifier.height(8.dp))
+
+                PrimaryButton(
+                    label = stringResource(R.string.guardar_cambios),
+                    onClick = {
+                        val categoryId = selectedCategoryId?.toIntOrNull()
+                        val amount = amountText.toDoubleOrNull()
+                        val period = BudgetPeriod.valueOf(selectedPeriod)
+
+                        if (categoryId == null) {
+                            showErrorToast(context, elegiUnaCategoriaText)
+                            return@PrimaryButton
+                        }
+
+                        if (amount == null || amount <= 0) {
+                            showErrorToast(context, ingresaMontoValidoText)
+                            return@PrimaryButton
+                        }
+
+                        if (!isValidDate(startDate) || !isValidDate(endDate)) {
+                            showErrorToast(context, formatoFechasText)
+                            return@PrimaryButton
+                        }
+
+                        if (startDate > endDate) {
+                            showErrorToast(context, fechaInicioValidacionText)
+                            return@PrimaryButton
+                        }
+
+                        scope.launch {
+                            val ok = budgetVm.updateBudget(
+                                budgetId = budgetId.toInt(),
+                                categoryId = categoryId,
+                                limitAmount = amount,
+                                period = period,
+                                startDate = startDate,
+                                endDate = endDate
+                            )
+                            if (ok) {
+                                showSuccessToast(context, presupuestoActualizadoText)
+                                onSaved()
+                            } else {
+                                showErrorToast(context, noSePudoActualizarPresupuestoText)
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = categories.isNotEmpty()
                 )
             }
         }
-
-        OutlinedTextField(
-            colors = expendInputColors(),
-            shape = MaterialTheme.shapes.small,
-            value = startDate,
-            onValueChange = { startDate = it },
-            label = { Text(stringResource(R.string.fecha_inicio_formato)) },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        OutlinedTextField(
-            colors = expendInputColors(),
-            shape = MaterialTheme.shapes.small,
-            value = endDate,
-            onValueChange = { endDate = it },
-            label = { Text(stringResource(R.string.fecha_fin_formato)) },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(Modifier.height(8.dp))
-
-        PrimaryButton(
-            label = stringResource(R.string.guardar_cambios),
-            onClick = {
-                val categoryId = selectedCategoryId?.toIntOrNull()
-                val amount = amountText.toDoubleOrNull()
-                val period = BudgetPeriod.valueOf(selectedPeriod)
-
-                if (categoryId == null) {
-                    showErrorToast(context, elegiUnaCategoriaText)
-                    return@PrimaryButton
-                }
-
-                if (amount == null || amount <= 0) {
-                    showErrorToast(context, ingresaMontoValidoText)
-                    return@PrimaryButton
-                }
-
-                if (!isValidDate(startDate) || !isValidDate(endDate)) {
-                    showErrorToast(context, formatoFechasText)
-                    return@PrimaryButton
-                }
-
-                if (startDate > endDate) {
-                    showErrorToast(context, fechaInicioValidacionText)
-                    return@PrimaryButton
-                }
-
-                scope.launch {
-                    val ok = budgetVm.updateBudget(
-                        budgetId = budgetId.toInt(),
-                        categoryId = categoryId,
-                        limitAmount = amount,
-                        period = period,
-                        startDate = startDate,
-                        endDate = endDate
-                    )
-                    if (ok) {
-                        showSuccessToast(context, presupuestoActualizadoText)
-                        onSaved()
-                    } else {
-                        showErrorToast(context, noSePudoActualizarPresupuestoText)
-                    }
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = categories.isNotEmpty()
-        )
-
 
         SecondaryTextButton(stringResource(R.string.cancelar), onCancel, Modifier.fillMaxWidth())
     }

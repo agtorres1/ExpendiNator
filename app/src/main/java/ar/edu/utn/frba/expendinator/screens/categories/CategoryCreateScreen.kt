@@ -25,9 +25,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -135,7 +132,7 @@ fun CategoryCreateScreen(
                                 modifier = Modifier.size(44.dp)
                             ) {
                                 Icon(
-                                    Icons.Rounded.Delete,
+                                    RoundedSymbols.Delete,
                                     contentDescription = stringResource(R.string.eliminar_palabra_clave)
                                 )
                             }
@@ -150,7 +147,7 @@ fun CategoryCreateScreen(
                 }
 
                 TextButton(onClick = { keywords.add("") }) {
-                    Icon(Icons.Rounded.Add, contentDescription = null)
+                    Icon(RoundedSymbols.Add, contentDescription = null)
                     Spacer(Modifier.width(6.dp))
                     Text(stringResource(R.string.agregar_palabra_clave))
                 }

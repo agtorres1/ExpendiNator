@@ -1,12 +1,12 @@
 package ar.edu.utn.frba.expendinator.screens.budgets
 
+import ar.edu.utn.frba.expendinator.utils.peso
+import ar.edu.utn.frba.expendinator.utils.monthName
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -58,7 +58,7 @@ private fun BudgetContent(budgets: List<BudgetUsageUi>, onNew: () -> Unit, onBud
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.presupuestos), style = MaterialTheme.typography.titleLarge)
-                IconSquareButton(Icons.Rounded.Add, stringResource(R.string.nuevo_presupuesto), onNew, prominent = true)
+                IconSquareButton(RoundedSymbols.Add, stringResource(R.string.nuevo_presupuesto), onNew, prominent = true)
             }
         }
         if (limit > 0) item {
@@ -70,7 +70,7 @@ private fun BudgetContent(budgets: List<BudgetUsageUi>, onNew: () -> Unit, onBud
                             modifier = Modifier.fillMaxSize(), color = tokens.accent,
                             trackColor = MaterialTheme.colorScheme.outline, strokeWidth = 6.dp)
                         Text(stringResource(R.string.porcentaje, (ratio * 100).roundToInt()),
-                            style = ExpendiTheme.typography.amount, color = tokens.accent)
+                            style = ExpendiTheme.typography.amount, color = tokens.accentText(MaterialTheme.colorScheme.surface))
                     }
                     Column {
                         Text(stringResource(R.string.usado_mes, monthName(month)),

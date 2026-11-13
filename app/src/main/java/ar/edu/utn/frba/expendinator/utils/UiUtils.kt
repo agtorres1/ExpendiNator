@@ -1,7 +1,7 @@
 package ar.edu.utn.frba.expendinator.utils
 
 import android.content.Context
-import android.graphics.Color
+import ar.edu.utn.frba.expendinator.ui.theme.*
 import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.widget.TextView
@@ -13,7 +13,7 @@ import android.widget.LinearLayout
 private fun showCustomToast(
     context: Context,
     message: String,
-    backgroundColor: Int,
+    accent: Int,
     iconRes: Int
 ) {
     val container = LinearLayout(context).apply {
@@ -22,13 +22,13 @@ private fun showCustomToast(
         setPadding(32, 20, 32, 20)
         background = GradientDrawable().apply {
             cornerRadius = 32f
-            setColor(backgroundColor)
+            setColor(ToastSurface)
         }
     }
 
     val icon = ImageView(context).apply {
         setImageResource(iconRes)
-        setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN)
+        setColorFilter(accent, PorterDuff.Mode.SRC_IN)
         val size = (20 * context.resources.displayMetrics.density).toInt()
         layoutParams = LinearLayout.LayoutParams(size, size).apply {
             rightMargin = (12 * context.resources.displayMetrics.density).toInt()
@@ -37,7 +37,7 @@ private fun showCustomToast(
 
     val textView = TextView(context).apply {
         text = message
-        setTextColor(Color.WHITE)
+        setTextColor(ToastText)
         textSize = 14f
     }
 
@@ -55,7 +55,7 @@ fun showSuccessToast(context: Context, message: String) {
     showCustomToast(
         context = context,
         message = message,
-        backgroundColor = 0xFF4CAF50.toInt(),
+        accent = ToastSuccess,
         iconRes = android.R.drawable.ic_dialog_info // icono porque Toast no soporta Icons
     )
 }
@@ -64,7 +64,7 @@ fun showErrorToast(context: Context, message: String) {
     showCustomToast(
         context = context,
         message = message,
-        backgroundColor = 0xFFF44336.toInt(),
+        accent = ToastWarning,
         iconRes = android.R.drawable.ic_dialog_alert // icono porque Toast no soporta Icons
     )
 }

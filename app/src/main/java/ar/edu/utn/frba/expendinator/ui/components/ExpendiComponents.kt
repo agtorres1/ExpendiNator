@@ -7,14 +7,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -23,6 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ar.edu.utn.frba.expendinator.ui.theme.ExpendiTheme
 import ar.edu.utn.frba.expendinator.ui.theme.category
+import ar.edu.utn.frba.expendinator.ui.theme.accentText
+import ar.edu.utn.frba.expendinator.ui.theme.readableOn
 
 @Composable
 fun ExpendiCard(
@@ -81,8 +82,10 @@ fun IconSquareButton(icon: ImageVector, label: String, onClick: () -> Unit, prom
 fun CategoryChip(label: String, storedColor: Long?, modifier: Modifier = Modifier) {
     val tokens = ExpendiTheme.colors
     val color = tokens.category(storedColor)
-    Surface(modifier, shape = RoundedCornerShape(99.dp), color = color.copy(alpha = tokens.categoryBackgroundAlpha)) {
-        Text(label, Modifier.padding(horizontal = 9.dp, vertical = 3.dp), color = color,
+    val tint = color.copy(alpha = tokens.categoryBackgroundAlpha)
+    val background = tint.compositeOver(MaterialTheme.colorScheme.surface)
+    Surface(modifier, shape = RoundedCornerShape(99.dp), color = tint) {
+        Text(label, Modifier.padding(horizontal = 9.dp, vertical = 3.dp), color = color.readableOn(background),
             style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
     }
 }
@@ -91,10 +94,12 @@ fun CategoryChip(label: String, storedColor: Long?, modifier: Modifier = Modifie
 fun CategoryAvatar(label: String, storedColor: Long?) {
     val tokens = ExpendiTheme.colors
     val color = tokens.category(storedColor)
+    val tint = color.copy(alpha = tokens.categoryBackgroundAlpha)
+    val background = tint.compositeOver(MaterialTheme.colorScheme.surface)
     Surface(Modifier.size(42.dp), shape = RoundedCornerShape(14.dp),
-        color = color.copy(alpha = tokens.categoryBackgroundAlpha)) {
+        color = tint) {
         Box(contentAlignment = Alignment.Center) {
-            Text(label.trim().take(1).uppercase(), color = color, style = MaterialTheme.typography.titleMedium)
+            Text(label.trim().take(1).uppercase(), color = color.readableOn(background), style = MaterialTheme.typography.titleMedium)
         }
     }
 }
@@ -125,7 +130,7 @@ fun ProgressBar(ratio: Float, color: Color) {
 }
 
 @Composable
-fun WarningBanner(message: String, icon: ImageVector = Icons.Rounded.WarningAmber) {
+fun WarningBanner(message: String, icon: ImageVector = RoundedSymbols.WarningAmber) {
     val tokens = ExpendiTheme.colors
     Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp),
         color = tokens.warningContainer, border = BorderStroke(1.dp, tokens.warningBorder)) {
@@ -176,7 +181,8 @@ fun ExpendiBottomBar(destinations: List<BottomDestination>, current: String?, on
                 ) {
                     Icon(destination.icon, null, Modifier.size(22.dp), tint = color)
                     Spacer(Modifier.height(4.dp))
-                    Text(destination.label, style = MaterialTheme.typography.labelSmall, color = color,
+                    Text(destination.label, style = MaterialTheme.typography.labelSmall,
+                        color = if (selected) ExpendiTheme.colors.accentText(MaterialTheme.colorScheme.surface) else color,
                         fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium)
                 }
             }

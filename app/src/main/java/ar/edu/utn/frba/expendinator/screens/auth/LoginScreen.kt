@@ -7,11 +7,6 @@ import androidx.compose.ui.text.style.TextAlign
 import ar.edu.utn.frba.expendinator.ui.components.*
 import androidx.compose.material3.*
 import androidx.compose.material3.Icon
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Email
-import androidx.compose.material.icons.rounded.Lock
-import androidx.compose.material.icons.rounded.Visibility
-import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -67,7 +62,7 @@ fun LoginScreen(
                     value = email,
                     onValueChange = { email = it },
                     label = { Text(stringResource(R.string.email)) },
-                    leadingIcon = { Icon(imageVector = Icons.Rounded.Email, contentDescription = null) },
+                    leadingIcon = { Icon(imageVector = RoundedSymbols.Email, contentDescription = null) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -78,11 +73,11 @@ fun LoginScreen(
                     value = password,
                     onValueChange = { password = it },
                     label = { Text(stringResource(R.string.password)) },
-                    leadingIcon = { Icon(imageVector = Icons.Rounded.Lock, contentDescription = null) },
+                    leadingIcon = { Icon(imageVector = RoundedSymbols.Lock, contentDescription = null) },
                     trailingIcon = {
                         IconButton(onClick = { showPassword = !showPassword }) {
                             Icon(
-                                imageVector = if (showPassword) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
+                                imageVector = if (showPassword) RoundedSymbols.VisibilityOff else RoundedSymbols.Visibility,
                                 contentDescription = stringResource(if (showPassword) R.string.ocultar_password else R.string.mostrar_password)
                             )
                         }

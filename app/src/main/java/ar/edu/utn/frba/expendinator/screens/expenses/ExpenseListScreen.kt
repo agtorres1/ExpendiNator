@@ -1,14 +1,13 @@
 package ar.edu.utn.frba.expendinator.screens.expenses
 
+import ar.edu.utn.frba.expendinator.utils.peso
+import ar.edu.utn.frba.expendinator.utils.monthName
+import ar.edu.utn.frba.expendinator.utils.shortDate
 import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.DocumentScanner
-import androidx.compose.material.icons.rounded.Menu
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.sp
@@ -17,7 +16,6 @@ import ar.edu.utn.frba.expendinator.ui.theme.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.saveable.rememberSaveable
-import ar.edu.utn.frba.expendinator.ui.theme.peso
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import androidx.compose.foundation.layout.*
@@ -135,7 +133,8 @@ private fun HomeContent(
     val latest = remember(expenses) { expenses.sortedByDescending { it.date } }
     val monthExpenses = expenses.filter { it.date.take(7) == month.toString() }
     val total = monthExpenses.sumOf { it.amount }
-    val previous = expenses.filter { it.date.take(7) == month.minusMonths(1).toString() }.sumOf { it.amount }
+    val previousMonth = month.minusMonths(1)
+    val previous = expenses.filter { it.date.take(7) == previousMonth.toString() }.sumOf { it.amount }
     val change = if (previous > 0) ((total - previous) / previous * 100).roundToInt() else null
     val categories = monthExpenses.groupBy { it.category }.mapValues { (_, entries) -> entries.sumOf { it.amount } }
         .filterValues { it > 0 }.entries.sortedByDescending { it.value }
@@ -155,7 +154,7 @@ private fun HomeContent(
                     Text(monthName(month), style = MaterialTheme.typography.bodyMedium, color = scheme.onSurfaceVariant)
                     Text(stringResource(R.string.tus_gastos), style = MaterialTheme.typography.titleMedium.copy(fontSize = 20.sp))
                 }
-                IconSquareButton(Icons.Rounded.Menu, stringResource(R.string.ajustes), onSettings)
+                IconSquareButton(RoundedSymbols.Menu, stringResource(R.string.ajustes), onSettings)
             }
         }
         item {
@@ -166,7 +165,7 @@ private fun HomeContent(
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(peso(total), style = ExpendiTheme.typography.heroAmount, modifier = Modifier.align(Alignment.CenterVertically))
                         if (change != null) {
-                            Text(stringResource(R.string.variacion_mes, change), color = colors.accent,
+                            Text(stringResource(R.string.variacion_mes, change), color = colors.accentText(scheme.surface),
                                 style = MaterialTheme.typography.titleSmall, modifier = Modifier.align(Alignment.CenterVertically))
                         }
                     }
@@ -194,22 +193,22 @@ private fun HomeContent(
                 Row(Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.size(44.dp).background(colors.onPrimaryButton.copy(alpha = .12f), RoundedCornerShape(14.dp)),
-                        contentAlignment = Alignment.Center) { Icon(Icons.Rounded.DocumentScanner, null) }
+                        contentAlignment = Alignment.Center) { Icon(RoundedSymbols.DocumentScanner, null) }
                     Column(Modifier.weight(1f)) {
                         Text(stringResource(R.string.escanear_ticket), fontSize = 16.sp, fontWeight = FontWeight.Bold)
                         Text(stringResource(R.string.escanear_ayuda), style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Medium, color = colors.onPrimaryButton.copy(alpha = .8f))
                     }
-                    Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null)
+                    Icon(RoundedSymbols.KeyboardArrowRight, null)
                 }
             }
         }
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.ultimos_gastos), style = MaterialTheme.typography.titleMedium)
-                if (latest.size > 5) SecondaryTextButton(
+                if (latest.isNotEmpty()) SecondaryTextButton(
                     stringResource(if (showAll) R.string.ver_menos else R.string.ver_todos),
-                    { showAll = !showAll }, color = colors.accent
+                    { showAll = !showAll }, color = colors.accentText(scheme.background)
                 )
             }
         }

@@ -1,5 +1,7 @@
 package ar.edu.utn.frba.expendinator.screens.expenses
 
+import ar.edu.utn.frba.expendinator.utils.peso
+import ar.edu.utn.frba.expendinator.utils.shortDate
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,8 +19,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
@@ -27,8 +27,6 @@ import ar.edu.utn.frba.expendinator.ui.theme.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.rounded.AutoAwesome
-import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.tooling.preview.Preview
@@ -72,7 +70,7 @@ fun OcrReviewScreen(
     expensesVm: ExpenseListViewModel,
     onRetake: (() -> Unit)? = null,
     onConfirmed: () -> Unit,
-    fromCamera: Boolean = false,
+    onBack: () -> Unit,
 ) {
     val state by ocrVm.ui.collectAsState()
     val categories by expensesVm.categoriesFlow.collectAsState()
@@ -94,47 +92,53 @@ fun OcrReviewScreen(
         }
     }
 
-    when (state) {
-        is OcrUiState.Loading -> {
-            Box(Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                    CircularProgressIndicator(color = ExpendiTheme.colors.accent)
-                    Text(stringResource(R.string.leyendo_ticket), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-        }
-        is OcrUiState.Error -> {
-            val msg = (state as OcrUiState.Error).message
-            Box(Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    WarningBanner(msg)
-                    onRetake?.let { SecondaryTextButton(stringResource(R.string.sacar_otra_foto), it, Modifier.fillMaxWidth()) }
-                }
-            }
-        }
-        is OcrUiState.Preview -> {
-            val preview = (state as OcrUiState.Preview)
-            ReceiptContent(
-                data = preview.data, entries = preview.editable, fromCamera = fromCamera,
-                onConfirm = { ocrVm.confirm(onDone = onConfirmed) }, onRetake = onRetake
-            ) { index, item ->
-                OcrItemEditor(
-                    item = item, currency = preview.data.currency, categories = categories,
-                    onChange = { preview.editable[index] = it },
-                    onAddCategoryRequested = {
-                        pendingCategoryIndex = index
-                        categoryDialogError = null
-                        showAddCategoryDialog = true
+    Column(Modifier.fillMaxSize()) {
+        ReceiptHeader(onBack)
+        Box(Modifier.weight(1f)) {
+            when (state) {
+                is OcrUiState.Loading -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                            CircularProgressIndicator(color = ExpendiTheme.colors.accent)
+                            Text(stringResource(R.string.leyendo_ticket), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                     }
-                )
+                }
+                is OcrUiState.Error -> {
+                    val msg = (state as OcrUiState.Error).message
+                    Box(Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            WarningBanner(msg)
+                            onRetake?.let { SecondaryTextButton(stringResource(R.string.sacar_otra_foto), it, Modifier.fillMaxWidth()) }
+                        }
+                    }
+                }
+                is OcrUiState.Preview -> {
+                    val preview = (state as OcrUiState.Preview)
+                    ReceiptContent(
+                        data = preview.data, entries = preview.editable,
+                        onConfirm = { ocrVm.confirm(onDone = onConfirmed) }, onRetake = onRetake
+                    ) { index, item ->
+                        OcrItemEditor(
+                            item = item, currency = preview.data.currency, categories = categories,
+                            onChange = { preview.editable[index] = it },
+                            onAddCategoryRequested = {
+                                pendingCategoryIndex = index
+                                categoryDialogError = null
+                                showAddCategoryDialog = true
+                            }
+                        )
+                    }
+                }
+                OcrUiState.Confirming -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                }
+                OcrUiState.Confirmed, OcrUiState.Idle -> Unit
             }
+
         }
-        OcrUiState.Confirming -> {
-            Box(Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        }
-        OcrUiState.Confirmed, OcrUiState.Idle -> Unit
     }
 
     if (showAddCategoryDialog) {
@@ -184,8 +188,17 @@ fun OcrReviewScreen(
 }
 
 @Composable
+private fun ReceiptHeader(onBack: () -> Unit) {
+    Row(Modifier.fillMaxWidth().padding(start = 20.dp, top = 14.dp, end = 20.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+        IconSquareButton(RoundedSymbols.ArrowBack, stringResource(R.string.volver), onBack)
+        Text(stringResource(R.string.revisar_ticket), style = MaterialTheme.typography.titleMedium.copy(fontSize = 17.sp))
+    }
+}
+
+@Composable
 private fun ReceiptContent(
-    data: OcrPreview, entries: List<OcrItem>, fromCamera: Boolean,
+    data: OcrPreview, entries: List<OcrItem>,
     onConfirm: () -> Unit, onRetake: (() -> Unit)?,
     itemContent: @Composable (Int, OcrItem) -> Unit
 ) {
@@ -207,14 +220,14 @@ private fun ReceiptContent(
                                 Text(stringResource(R.string.meta_dos, shortDate(data.date), count),
                                     style = MaterialTheme.typography.bodySmall, color = muted)
                             }
-                            if (fromCamera) Surface(
+                            if (!data.receiptId.startsWith("mock-")) Surface(
                                 shape = RoundedCornerShape(99.dp), color = MaterialTheme.colorScheme.surface,
                                 border = BorderStroke(1.dp, tokens.accent.copy(alpha = .4f))
                             ) {
                                 Row(Modifier.padding(horizontal = 7.dp, vertical = 5.dp),
                                     horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Rounded.AutoAwesome, null, Modifier.size(13.dp), tint = tokens.accent)
-                                    Text(stringResource(R.string.leido_ia), style = MaterialTheme.typography.labelSmall, color = tokens.accent)
+                                    Icon(RoundedSymbols.AutoAwesome, null, Modifier.size(13.dp), tint = tokens.accent)
+                                    Text(stringResource(R.string.leido_ia), style = MaterialTheme.typography.labelSmall, color = tokens.accentText(MaterialTheme.colorScheme.surface))
                                 }
                             }
                         }
@@ -242,8 +255,13 @@ private fun ReceiptPreview() {
         Surface(color = MaterialTheme.colorScheme.background) {
             val item = OcrItem(stringResource(R.string.ejemplo_gasto), 18250.0, date = "2026-11-13")
             val data = OcrPreview("demo", "ARS", item.date, listOf(item), item.amount, merchant = item.title)
-            ReceiptContent(data, data.items, true, {}, {}) { _, entry ->
-                OcrItemEditor(entry, data.currency, emptyList(), {}, {})
+            Column {
+                ReceiptHeader({})
+                Box(Modifier.weight(1f)) {
+                    ReceiptContent(data, data.items, {}, {}) { _, entry ->
+                        OcrItemEditor(entry, data.currency, emptyList(), {}, {})
+                    }
+                }
             }
         }
     }
@@ -273,7 +291,7 @@ private fun OcrItemEditor(
 
                 }
                 Text(receiptAmount(item.amount, currency), style = ExpendiTheme.typography.amount,
-                    color = if (item.amount < 0) ExpendiTheme.colors.accent else MaterialTheme.colorScheme.onSurface)
+                    color = if (item.amount < 0) ExpendiTheme.colors.accentText(MaterialTheme.colorScheme.surface) else MaterialTheme.colorScheme.onSurface)
             }
         }
         return
@@ -349,7 +367,7 @@ private fun OcrItemEditor(
                         )
                     }
                     DropdownMenuItem(
-                        leadingIcon = { Icon(Icons.Rounded.Add, contentDescription = null) },
+                        leadingIcon = { Icon(RoundedSymbols.Add, contentDescription = null) },
                         text = { Text(stringResource(R.string.agregar_categoria)) },
                         onClick = {
                             expanded = false

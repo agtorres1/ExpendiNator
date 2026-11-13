@@ -1,6 +1,9 @@
 package ar.edu.utn.frba.expendinator.ui.theme
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.toArgb
 
 internal val Mint = Color(0xFF5EE6A8)
 internal val OnMint = Color(0xFF06210F)
@@ -36,3 +39,29 @@ internal val CategoryPastels = listOf(
 internal val PreviewCategoryColor = CategoryPastels.first()
 internal fun categoryArgb(red: Int, green: Int, blue: Int): Long =
     0xFF000000L or (red.toLong() shl 16) or (green.toLong() shl 8) or blue.toLong()
+
+internal fun Color.readableOn(background: Color): Color {
+    val backgroundLuminance = background.luminance()
+    fun contrast(color: Color): Float {
+        val foregroundLuminance = color.luminance()
+        return (maxOf(foregroundLuminance, backgroundLuminance) + .05f) /
+            (minOf(foregroundLuminance, backgroundLuminance) + .05f)
+    }
+    if (contrast(this) >= 4.5f) return this
+
+    val target = if (contrast(Color.Black) > contrast(Color.White)) Color.Black else Color.White
+    var lower = 0f
+    var upper = 1f
+    repeat(10) {
+        val mix = (lower + upper) / 2f
+        if (contrast(lerp(this, target, mix)) >= 4.5f) upper = mix else lower = mix
+    }
+    return lerp(this, target, upper)
+}
+
+internal fun ExpendiColors.accentText(background: Color): Color = accent.readableOn(background)
+
+internal val ToastSurface = DarkSurface.toArgb()
+internal val ToastText = DarkText.toArgb()
+internal val ToastWarning: Int get() = DarkTokens.warning.toArgb()
+internal val ToastSuccess = Mint.toArgb()

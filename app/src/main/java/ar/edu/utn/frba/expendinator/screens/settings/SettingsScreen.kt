@@ -8,9 +8,6 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -40,7 +37,7 @@ fun SettingsScreen(
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconSquareButton(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(R.string.volver), onBack)
+            IconSquareButton(RoundedSymbols.ArrowBack, stringResource(R.string.volver), onBack)
             Text(stringResource(R.string.ajustes), style = MaterialTheme.typography.titleLarge)
         }
         Text(stringResource(R.string.apariencia), style = MaterialTheme.typography.titleSmall, color = scheme.onSurfaceVariant)
@@ -89,7 +86,7 @@ fun SettingsScreen(
                 Row(Modifier.fillMaxWidth().heightIn(min = 52.dp).padding(horizontal = 14.dp),
                     horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Text(stringResource(R.string.mis_categorias))
-                    Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, tint = scheme.onSurfaceVariant)
+                    Icon(RoundedSymbols.KeyboardArrowRight, null, tint = scheme.onSurfaceVariant)
                 }
             }
         }
