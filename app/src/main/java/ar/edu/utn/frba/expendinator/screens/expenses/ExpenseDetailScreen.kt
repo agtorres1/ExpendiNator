@@ -23,6 +23,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import ar.edu.utn.frba.ExpendinatorApp.R
+import ar.edu.utn.frba.expendinator.ui.components.*
+import ar.edu.utn.frba.expendinator.ui.theme.*
 import ar.edu.utn.frba.expendinator.models.Category
 
 
@@ -93,111 +95,119 @@ fun ExpenseDetailScreen(
 
     Column(
         modifier = Modifier
-            .padding(16.dp)
+            .padding(20.dp)
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        OutlinedTextField(
-            value = title,
-            onValueChange = { title = it },
-            label = { Text(stringResource(R.string.nombre)) },
-            singleLine = true,
-            readOnly = readOnly,
-            enabled = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        OutlinedTextField(
-            value = amountText,
-            onValueChange = {
-                amountText = it
-                    .filter { ch -> ch.isDigit() || ch == '.' || ch == ',' }
-                    .replace(',', '.')
-            },
-            label = { Text(stringResource(R.string.monto)) },
-            singleLine = true,
-            readOnly = readOnly,
-            enabled = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        var expanded by remember { mutableStateOf(false) }
-
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { if (isEditing) expanded = !expanded }
-        ) {
-            OutlinedTextField(
-                value = selectedCategory?.name ?: stringResource(R.string.sin_categoria),
-                onValueChange = {},
-                readOnly = true,
-                label = { Text(stringResource(R.string.categoria)) },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-                leadingIcon = {
-                    // puntito de color
-                    Box(
-                        Modifier
-                            .size(16.dp)
-                            .background(
-                                color = selectedCategory?.let { Color(it.color) } ?: Color.LightGray,
-                                shape = CircleShape
-                            )
-                    )
-                },
-                modifier = Modifier
-                    .menuAnchor()
-                    .fillMaxWidth(),
-                enabled = true // dejamos true para que pueda abrir; controlamos con isEditing arriba
-            )
-
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
-            ) {
-                // Opción "Sin categoría"
-                DropdownMenuItem(
-                    leadingIcon = {
-                        Box(
-                            Modifier
-                                .size(14.dp)
-                                .background(Color.LightGray, CircleShape)
-                        )
-                    },
-                    text = { Text(stringResource(R.string.sin_categoria)) },
-                    onClick = {
-                        selectedCategory = null
-                        expanded = false
-                    },
-                    enabled = isEditing
+        ExpendiCard(Modifier.fillMaxWidth(), radius = 24.dp) {
+            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedTextField(
+                    colors = expendInputColors(),
+                    shape = MaterialTheme.shapes.small,
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text(stringResource(R.string.nombre)) },
+                    singleLine = true,
+                    readOnly = readOnly,
+                    enabled = true,
+                    modifier = Modifier.fillMaxWidth()
                 )
 
-                // Resto de categorías
-                categories.forEach { cat ->
-                    DropdownMenuItem(
+                OutlinedTextField(
+                    colors = expendInputColors(),
+                    shape = MaterialTheme.shapes.small,
+                    value = amountText,
+                    textStyle = ExpendiTheme.typography.amount,
+                    onValueChange = {
+                        amountText = it
+                            .filter { ch -> ch.isDigit() || ch == '.' || ch == ',' }
+                            .replace(',', '.')
+                    },
+                    label = { Text(stringResource(R.string.monto)) },
+                    singleLine = true,
+                    readOnly = readOnly,
+                    enabled = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                var expanded by remember { mutableStateOf(false) }
+
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { if (isEditing) expanded = !expanded }
+                ) {
+                    OutlinedTextField(
+                        colors = expendInputColors(),
+                        shape = MaterialTheme.shapes.small,
+                        value = selectedCategory?.name ?: stringResource(R.string.sin_categoria),
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text(stringResource(R.string.categoria)) },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
                         leadingIcon = {
+                            // puntito de color
                             Box(
                                 Modifier
-                                    .size(14.dp)
-                                    .background(Color(cat.color), CircleShape)
+                                    .size(16.dp)
+                                    .background(
+                                        color = ExpendiTheme.colors.category(selectedCategory?.color),
+                                        shape = CircleShape
+                                    )
                             )
                         },
-                        text = { Text(cat.name) },
-                        onClick = {
-                            selectedCategory = cat
-                            expanded = false
-                        },
-                        enabled = isEditing
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth(),
+                        enabled = true // dejamos true para que pueda abrir; controlamos con isEditing arriba
                     )
+
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        // Opción "Sin categoría"
+                        DropdownMenuItem(
+                            leadingIcon = {
+                                Box(
+                                    Modifier
+                                        .size(14.dp)
+                                        .background(MaterialTheme.colorScheme.onSurfaceVariant, CircleShape)
+                                )
+                            },
+                            text = { Text(stringResource(R.string.sin_categoria)) },
+                            onClick = {
+                                selectedCategory = null
+                                expanded = false
+                            },
+                            enabled = isEditing
+                        )
+
+                        // Resto de categorías
+                        categories.forEach { cat ->
+                            DropdownMenuItem(
+                                leadingIcon = {
+                                    Box(
+                                        Modifier
+                                            .size(14.dp)
+                                            .background(ExpendiTheme.colors.category(cat.color), CircleShape)
+                                    )
+                                },
+                                text = { Text(cat.name) },
+                                onClick = {
+                                    selectedCategory = cat
+                                    expanded = false
+                                },
+                                enabled = isEditing
+                            )
+                        }
+                    }
+                }
+
+                if (isEditing) {
+                    PrimaryButton(stringResource(R.string.guardar_cambios), { save() }, Modifier.fillMaxWidth())
                 }
             }
-        }
-
-        if (isEditing) {
-            Button(
-                onClick = { save() },
-                modifier = Modifier.fillMaxWidth()
-            ) { Text(stringResource(R.string.guardar_cambios)) }
         }
     }
 

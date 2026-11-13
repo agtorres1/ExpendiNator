@@ -453,5 +453,5 @@ private fun randomCategoryColor(): Long {
     val r = Random.nextInt(90, 220)
     val g = Random.nextInt(90, 220)
     val b = Random.nextInt(90, 220)
-    return 0xFF000000L or (r.toLong() shl 16) or (g.toLong() shl 8) or b.toLong()
+    return categoryArgb(r, g, b)
 }

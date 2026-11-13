@@ -30,4 +30,9 @@ fun ExpendiColors.category(stored: Long?): Color {
         ?: Color(pastel.red * .55f, pastel.green * .55f, pastel.blue * .55f)
 }
 
-internal const val PreviewCategoryColor = 0xFF9EC5FEL
+internal val CategoryPastels = listOf(
+    0xFF9EC5FEL, 0xFFFECBA1L, 0xFFA3CFBBL, 0xFFF3B0C3L, 0xFFE2C6FEL, 0xFFFFD966L
+)
+internal val PreviewCategoryColor = CategoryPastels.first()
+internal fun categoryArgb(red: Int, green: Int, blue: Int): Long =
+    0xFF000000L or (red.toLong() shl 16) or (green.toLong() shl 8) or blue.toLong()
